@@ -14,7 +14,7 @@ byte read_data(){
       delayMicroseconds(30); // HIGH의 지속시간을 결정, 0또는1로 결정됨 파형에 따라서
 
       if(digitalRead(DHpin) == HIGH){
-        data |= ( 1 << (7-i))l;
+        data |= ( 1 << (7-i));
       }
 
       while(digitalRead(DHpin) == HIGH); // 1데이터, 다음 수신을 기다림
@@ -31,7 +31,7 @@ void start_test(){
   digitalWrite(DHpin, HIGH);
   delayMicroseconds(40); // DHT11의 신호를 기다림
 
-  pinMode(DHpin, Input);
+  pinMode(DHpin, INPUT);
   
   while(digitalRead(DHpin) == HIGH);
   delayMicroseconds(80);
@@ -61,14 +61,14 @@ void loop(){
   Serial.print("Current Humidity = "); // 현재 습도 출력
   Serial.print(dat[0], DEC);
   Serial.print('.');
-  Serial.print(data[1],, DEC);
-  Serial.print('%');
+  Serial.print(dat[1], DEC);
+  Serial.println('%');
 
   Serial.print("Current Temperature = "); // 현재 온도 출력
   Serial.print(dat[2], DEC);
   Serial.print('.');
-  Serial.print(data[3],, DEC);
-  Serial.print('C');
+  Serial.print(dat[3], DEC);
+  Serial.println('C');
 
   delay(700);
 }
