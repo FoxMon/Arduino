@@ -1,8 +1,12 @@
+#include "pitches.h"
+#include "PlayMelody.h"
 /*
  * upButton이 눌리면 숫자가 올라갑니다.
  * 해당 state에 해당하는 event를 처리합니다.
  * downButton이 눌릴 경우에는 숫자가 내려갑니다.
  * SerialMonitor로 state를 처리할 수 있어야 합니다.
+ * 스피커로 노래 출력하는거 추가하기.
+ * 시리얼로 state 변화주기
 */
 
 #define STATE_MAX 5
@@ -68,11 +72,46 @@ int segNum = 8; // 세그먼트 핀 숫자개수
   while(digitalRead (DHpin) == HIGH);
 
   for (int i = 0; i < 4; i ++){// receive temperature and humidity data, the parity bit is not considered
-     dat[i] = read_data ();
+     dat[i] = Read_Data();
   }
   
   pinMode (DHpin, OUTPUT);
   digitalWrite (DHpin, HIGH); // send data once after releasing the bus, wait for the host to open the next Start signal
+}
+*/
+
+/*
+void Play_Doremi() {
+  for(int i=0; i<numTones; i++){
+    tone(speakerPin, tones[i]);
+        // tone(pin, frquency, duration);
+        delay(500);
+      }
+    noTone(speakerPin);
+}
+*/
+//학교종이 땡땡땡
+/*
+void Play_School_Bell(void)
+{ 
+  int noteDuration = 0, thisNote = 0, pauseBetweenNotes = 0;
+  for (thisNote = 0; thisNote < sizeof(noteDurations) / sizeof(int); thisNote++) {
+
+    // 음표 길이를 계산하기 위하여, 1초를 음표 타입으로 나눕니다. 
+    // 예를 들어, 4분 음표 = 1000 / 4,  8분 음표 = 1000/8 등과 같이
+    // 합니다.
+    noteDuration = 1000 / noteDurations[thisNote];
+    tone(speakerPin, melody[thisNote]);
+    delay(noteDuration);
+
+    // 음표들을 구분하기 위하여, 음표 사이에 최소한의 지연 시간을
+    // 음표 길이 + 30%가 잘 동작하는 것 같습니다:
+    noTone(speakerPin);
+    pauseBetweenNotes = noteDuration * 1.30;
+    delay(pauseBetweenNotes);
+  }
+     // 음 발생하는 것을 멈춤니다:
+     noTone(speakerPin);
 }
 */
 
@@ -94,8 +133,18 @@ int Button_Int_Handler2(uint32_t ulPin){ // Button Interrupt Handler 2
   Serial.println(state_mode);
 }
 
-void State_Change(void){
-    
+void Play_State_And_Change(void){
+    switch(state_mode){ // state에 해당하는 event 실행
+      /*case :
+        break;
+      case :
+        break;
+      case :
+        break;*/
+      default :
+        Serial.println("STATE ERROR");
+        break;
+    }
 }
 
 void setup() {
@@ -116,4 +165,20 @@ void setup() {
 }
 
 void loop() {
+  char input = 0;
+  
+  if(Serial.available()) { // Serial Monitor로 state 입력을 받음
+    input = Serial.read();
+
+    if(input >= '0' && input <= '9'){
+      input = input - '0';
+      state_mode = input % STATE_MAX; // 현재 state의 상태를 유지
+      Play_State_And_Change();
+    }
+    else{
+      Serial.println("type 0 ~ 9 ");
+    }
+  }
+  
+  Play_State_And_Change();
 }
