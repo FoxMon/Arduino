@@ -1,5 +1,5 @@
 // SegmentLEDs PinMode 
-int segmentLEDs[] = {2, 3, 4, 5, 6, 7, 8, 9};
+int segmentLEDs[] = { 2, 3, 4, 5, 6, 7, 8, 9};
 // LED 개수
 int segmentLEDsNum = 8;
 // Common Cathode

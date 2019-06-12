@@ -9,7 +9,9 @@
  * 시리얼로 state 변화주기
 */
 
-#define STATE_MAX 5
+#define STATE_MAX 10
+#define PIEZO_SPK 1
+#define SEVEN_SEG 0
 
 int state_mode = 0;
 int upButton = 1; // up버튼 핀 1
@@ -29,13 +31,20 @@ int digitLEDs[10][8] = {
   {1, 1, 1, 1, 0, 1, 1, 0}, //9
 };
 int segNum = 8; // 세그먼트 핀 숫자개수
-// int potent = 14; // 가변저항기 핀 14번
-// int in1 = 11; // 순방향
-// int in2 = 12; // 역방향 둘 중 하나만 쓸 듯??
-// int enable = 13; // 모터속도속도 고정이라면??
-// int ledPin = 14; // LED핀
-// int speakerPin = 2; // 입력 핀의 상태를 읽기 위한 변수
-// int DHpin = 4; // 온습도 핀
+int numTones = 8;
+unsigned int tones[] = {262, 294, 330, 349, 392, 440, 494, 523};
+unsigned int melody[] = { // 멜로디를 위한 음표
+   NOTE_G4, NOTE_G4, NOTE_A4, NOTE_A4, NOTE_G4, NOTE_G4, NOTE_E4,
+   NOTE_G4, NOTE_G4, NOTE_E4, NOTE_E4, NOTE_D4, 0
+};
+unsigned int noteDurations[] = { // 음표 길이들 : 4 = 4분(1/4) 음표, 8 = 8분(1/8) 음표, 
+   4, 4, 4, 4, 4, 4, 2,
+   4, 4, 4, 4, 2, 2
+};
+// int potent = 0; // 가변저항기 핀 14번
+// int ledPin = 0; // LED핀
+int speakerPin = 14; // 입력 핀의 상태를 읽기 위한 변수
+// int DHpin = 0; // 온습도 핀
 // byte dat [5]; // 온습도 받기 위한 byte 배열
 
 // 온습도 데이타를 읽기
@@ -80,6 +89,7 @@ int segNum = 8; // 세그먼트 핀 숫자개수
 }
 */
 
+// 음정 출력
 /*
 void Play_Doremi() {
   for(int i=0; i<numTones; i++){
@@ -91,7 +101,6 @@ void Play_Doremi() {
 }
 */
 //학교종이 땡땡땡
-/*
 void Play_School_Bell(void)
 { 
   int noteDuration = 0, thisNote = 0, pauseBetweenNotes = 0;
@@ -113,7 +122,6 @@ void Play_School_Bell(void)
      // 음 발생하는 것을 멈춤니다:
      noTone(speakerPin);
 }
-*/
 
 int Button_Int_Handler1(uint32_t ulPin){ // Button Interrupt Handler 1
   Serial.print("upButton_Interrupt");
@@ -127,7 +135,11 @@ int Button_Int_Handler1(uint32_t ulPin){ // Button Interrupt Handler 1
 int Button_Int_Handler2(uint32_t ulPin){ // Button Interrupt Handler 2
   Serial.print("downButton_Interrupt");
   
-  state_mode = (state_mode - 1) % STATE_MAX; // 현재 state에 -1
+  state_mode = (state_mode - 1); // 현재 state에 -1
+
+  if(state_mode < 0){ // state가 0인 상태에서 downButton이 눌려진다면
+    state_mode = (STATE_MAX - 1); // state는 9인 상태로 돌아감
+  }
   
   Serial.print("STATE_MODE : ");
   Serial.println(state_mode);
@@ -135,12 +147,22 @@ int Button_Int_Handler2(uint32_t ulPin){ // Button Interrupt Handler 2
 
 void Play_State_And_Change(void){
     switch(state_mode){ // state에 해당하는 event 실행
+      case SEVEN_SEG:
+        Serial.println("STATE 0.");
+        break;
+      case PIEZO_SPK:
+        Serial.println("STATE 1.");
+        break;
       /*case :
+        Serial.println("2. ");
         break;
       case :
+        Serial.println("3. ");
         break;
       case :
-        break;*/
+        Serial.println("4. ");
+        break;
+      */
       default :
         Serial.println("STATE ERROR");
         break;
@@ -153,6 +175,7 @@ void setup() {
   pinMode(upButton, INPUT); // up버튼 핀 인풋
   pinMode(downButton, INPUT);
   // pinMode(ledPin, OUTPUT);
+  // pinMode(speakerPin, OUTPUT);
 
   attachPinInterrupt(upButton, Button_Int_Handler1, HIGH); // upButton I.H
   attachPinInterrupt(downButton, Button_Int_Handler2, HIGH); // downButton I.H
@@ -166,6 +189,8 @@ void setup() {
 
 void loop() {
   char input = 0;
+
+  Play_State_And_Change();
   
   if(Serial.available()) { // Serial Monitor로 state 입력을 받음
     input = Serial.read();
@@ -179,6 +204,4 @@ void loop() {
       Serial.println("type 0 ~ 9 ");
     }
   }
-  
-  Play_State_And_Change();
 }
