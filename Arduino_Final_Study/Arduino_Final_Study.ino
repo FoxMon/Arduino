@@ -12,6 +12,7 @@
 #define STATE_MAX 10
 #define PIEZO_SPK 1
 #define SEVEN_SEG 0
+#define DC_MOTOR  2
 
 int state_mode = 0;
 int upButton = 1; // up버튼 핀 1
@@ -100,8 +101,8 @@ void Play_Doremi() {
     noTone(speakerPin);
 }
 */
-//학교종이 땡땡땡
-void Play_School_Bell(void)
+
+void Play_School_Bell(void) // School Bell
 { 
   int noteDuration = 0, thisNote = 0, pauseBetweenNotes = 0;
   for (thisNote = 0; thisNote < sizeof(noteDurations) / sizeof(int); thisNote++) {
@@ -123,40 +124,50 @@ void Play_School_Bell(void)
      noTone(speakerPin);
 }
 
+void Show_Segment_Number(void){ // Display 7-Segment
+  for(int i = 0; i < 10; i++){
+    for(int j = 0; j < segNum; j++){
+      digitalWrite(segmentLEDsNum[j], digitLEDs[i][j]);
+    }
+
+    delay(1000);
+  }
+}
+
 int Button_Int_Handler1(uint32_t ulPin){ // Button Interrupt Handler 1
   Serial.print("upButton_Interrupt");
-  
-  state_mode = (state_mode + 1) % STATE_MAX; // 현재 state에 +1
-  
   Serial.print("STATE_MODE : ");
   Serial.println(state_mode);
+  
+  state_mode = (state_mode + 1) % STATE_MAX; // 현재 state에 +1
 }
 
 int Button_Int_Handler2(uint32_t ulPin){ // Button Interrupt Handler 2
   Serial.print("downButton_Interrupt");
+  Serial.print("STATE_MODE : ");
+  Serial.println(state_mode);
   
   state_mode = (state_mode - 1); // 현재 state에 -1
 
   if(state_mode < 0){ // state가 0인 상태에서 downButton이 눌려진다면
     state_mode = (STATE_MAX - 1); // state는 9인 상태로 돌아감
   }
-  
-  Serial.print("STATE_MODE : ");
-  Serial.println(state_mode);
 }
 
 void Play_State_And_Change(void){
     switch(state_mode){ // state에 해당하는 event 실행
       case SEVEN_SEG:
         Serial.println("STATE 0.");
+        Show_Segment_Number();
         break;
       case PIEZO_SPK:
         Serial.println("STATE 1.");
+        Play_School_Bell();
+        break;
+      case DC_MOTOR:
+        Serial.println("STATE 2.");
         break;
       /*case :
-        Serial.println("2. ");
-        break;
-      case :
         Serial.println("3. ");
         break;
       case :
@@ -173,12 +184,12 @@ void setup() {
   Serial.begin(9600); // 시리얼 통신 속도
   
   pinMode(upButton, INPUT); // up버튼 핀 인풋
-  pinMode(downButton, INPUT);
+  // pinMode(downButton, INPUT);
   // pinMode(ledPin, OUTPUT);
-  // pinMode(speakerPin, OUTPUT);
+  pinMode(speakerPin, OUTPUT);
 
-  attachPinInterrupt(upButton, Button_Int_Handler1, HIGH); // upButton I.H
-  attachPinInterrupt(downButton, Button_Int_Handler2, HIGH); // downButton I.H
+  attachPinInterrupt(upButton, Button_Int_Handler1, LOW); // upButton I.H
+  attachPinInterrupt(downButton, Button_Int_Handler2, LOW); // downButton I.H
 
   for(int i = 0; i < segNum; i++){ // 7-Segment를 전부 OUTPUT으로..
     pinMode(segmentLEDsNum[i], OUTPUT);
@@ -190,8 +201,8 @@ void setup() {
 void loop() {
   char input = 0;
 
-  Play_State_And_Change();
-  
+  buttonState = digitalRead(upButton);
+
   if(Serial.available()) { // Serial Monitor로 state 입력을 받음
     input = Serial.read();
 
@@ -203,5 +214,9 @@ void loop() {
     else{
       Serial.println("type 0 ~ 9 ");
     }
+  }
+  
+  if(buttonState == HIGH){
+    Play_State_And_Change();
   }
 }
