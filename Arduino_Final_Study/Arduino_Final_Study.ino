@@ -9,7 +9,7 @@
  * 시리얼로 state 변화주기
 */
 
-#define STATE_MAX 10
+#define STATE_MAX 5
 #define PIEZO_SPK 1
 #define SEVEN_SEG 0
 #define TEMP_HUMID  2
@@ -256,7 +256,7 @@ void loop() {
   if(Serial.available()) { // Serial Monitor로 state 입력을 받음
     input = Serial.read();
 
-    if(input >= '0' && input <= '9'){
+    if(input >= '0' && input <= '4'){
       input = input - '0';
       state_mode = input % STATE_MAX; // 현재 state의 상태를 유지
       Play_State_And_Change();
